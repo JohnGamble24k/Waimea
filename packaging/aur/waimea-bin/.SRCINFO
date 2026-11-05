@@ -1,0 +1,25 @@
+pkgbase = waimea-bin
+	pkgdesc = Terminal music player with online search, radio, podcasts and Winamp skins
+	pkgver = 0.3.7
+	pkgrel = 1
+	url = https://github.com/JohnGamble24k/Waimea
+	arch = x86_64
+	arch = aarch64
+	license = MIT
+	depends = alsa-lib
+	depends = glibc
+	depends = libgcc
+	optdepends = yt-dlp: online search and streaming
+	optdepends = ffmpeg: exotic formats and HLS streams
+	provides = waimea=0.3.7
+	conflicts = waimea
+	options = !strip
+	options = !debug
+	source = LICENSE-0.3.7::https://raw.githubusercontent.com/JohnGamble24k/Waimea/v0.3.7/LICENSE
+	sha256sums = SKIP
+	source_x86_64 = waimea-0.3.7-x86_64::https://github.com/JohnGamble24k/Waimea/releases/download/v0.3.7/waimea-x86_64-linux
+	sha256sums_x86_64 = SKIP
+	source_aarch64 = waimea-0.3.7-aarch64::https://github.com/JohnGamble24k/Waimea/releases/download/v0.3.7/waimea-aarch64-linux
+	sha256sums_aarch64 = SKIP
+
+pkgname = waimea-bin

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Waimea",
+  "version": "0.3.7",
+  "identifier": "io.github.johngamble24k.waimea",
+  "build": { "frontendDist": "ui" },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Waimea",
+        "width": 1040,
+        "height": 812,
+        "minWidth": 680,
+        "minHeight": 420,
+        "decorations": false,
+        "transparent": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["deb", "rpm", "appimage"],
+    "icon": ["icons/icon.png"],
+    "category": "Audio"
+  }
+}

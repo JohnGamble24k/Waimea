@@ -1,0 +1,17 @@
+[package]
+name = "waimea-desktop"
+version = "0.3.7"
+edition = "2021"
+description = "Waimea as a desktop app: Winamp skins in a real window, with a music, radio and YouTube library"
+license = "MIT"
+publish = false
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+waimea = { path = ".." }
+tauri = { version = "2", features = ["custom-protocol"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-single-instance = "2"
+serde_json = "1"

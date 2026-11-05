@@ -1,0 +1,114 @@
+[package]
+name = "waimea"
+version = "0.3.7"
+edition = "2021"
+description = "A platform-agnostic, agent-ready terminal music player with online audio search, local playback, and Winamp skin support"
+repository = "https://github.com/JohnGamble24k/Waimea"
+homepage = "https://github.com/JohnGamble24k/Waimea"
+license = "MIT"
+keywords = ["music", "player", "terminal", "tui", "audio"]
+categories = ["command-line-utilities", "multimedia::audio"]
+readme = "README.md"
+# Keep the published crate to what builds and tests it (README.md is read by
+# a test); screenshots, icons, docs and packaging files stay out.
+include = ["/src/**/*.rs", "/src/skin/waimea.wsz", "/Cargo.toml", "/Cargo.lock", "/README.md", "/LICENSE"]
+
+# cargo-binstall: the release archives (`waimea-<version>-<target>.tar.gz`,
+# `.zip` on Windows) hold the binary in a `waimea-<version>-<target>/` folder.
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ version }-{ target }{ archive-suffix }"
+bin-dir = "{ name }-{ version }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
+
+# `cargo deb --no-build --target <triple>` in the release workflow. Depends
+# are spelled out instead of `$auto` so one .deb fits both Debian 12
+# (libasound2) and Ubuntu 24.04+ / Debian 13 (libasound2t64).
+[package.metadata.deb]
+maintainer = "JohnGamble24k <JohnGamble24k@users.noreply.github.com>"
+copyright = "2026, JohnGamble24k; 2026, dzulfikar08"
+license-file = ["LICENSE", "0"]
+section = "sound"
+priority = "optional"
+depends = "libc6 (>= 2.34), libasound2 (>= 1.0.16) | libasound2t64"
+recommends = "yt-dlp, ffmpeg"
+extended-description = """\
+A lightweight terminal music player: native Rust audio engine, visualizer, \
+synced lyrics, Internet radio, podcasts, Subsonic and Jellyfin, and \
+pixel-accurate Winamp skins. Online search and streaming use yt-dlp; ffmpeg \
+adds exotic formats and HLS streams."""
+assets = [
+    ["target/release/waimea", "usr/bin/", "755"],
+    ["README.md", "usr/share/doc/waimea/README.md", "644"],
+    ["packaging/linux/waimea.desktop", "usr/share/applications/", "644"],
+    ["assets/macos/icon.svg", "usr/share/icons/hicolor/scalable/apps/waimea.svg", "644"],
+]
+
+# `cargo generate-rpm --target <triple>` in the release workflow.
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/waimea", dest = "/usr/bin/waimea", mode = "755" },
+    { source = "README.md", dest = "/usr/share/doc/waimea/README.md", mode = "644", doc = true },
+    { source = "LICENSE", dest = "/usr/share/licenses/waimea/LICENSE", mode = "644", doc = true },
+    { source = "packaging/linux/waimea.desktop", dest = "/usr/share/applications/waimea.desktop", mode = "644" },
+    { source = "assets/macos/icon.svg", dest = "/usr/share/icons/hicolor/scalable/apps/waimea.svg", mode = "644" },
+]
+
+[package.metadata.generate-rpm.requires]
+alsa-lib = "*"
+
+# File dependencies: Fedora ships ffmpeg as ffmpeg-free, RPM Fusion as ffmpeg.
+[package.metadata.generate-rpm.recommends]
+"/usr/bin/yt-dlp" = "*"
+"/usr/bin/ffmpeg" = "*"
+
+[workspace]
+members = ["desktop"]
+
+[dependencies]
+ratatui = "0.29"
+crossterm = "0.28"
+# `signal`: daemon SIGINT/SIGTERM; adds no crates (signal-hook-registry is
+# already pulled in by `process`).
+tokio = { version = "1", default-features = false, features = ["rt", "macros", "sync", "time", "process", "signal"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+toml = "0.8"
+dirs = "6"
+zip = { version = "8.5.0", default-features = false, features = ["deflate-flate2"] }
+cpal = "0.17"
+symphonia = { version = "=0.5.5", default-features = false, features = ["mp3", "flac", "ogg", "vorbis", "wav", "pcm", "isomp4", "aac", "alac", "aiff", "mkv"] }
+ureq = { version = "3", features = ["json"] }
+quick-xml = "0.38"
+md-5 = "0.10"
+# zlib for kitty graphics payloads and the PNG encoder (iTerm2, skin previews);
+# already in the tree via zip, default miniz_oxide backend.
+flate2 = "1"
+
+# Media keys / Now Playing (src/mediactl). All but objc2-media-player are
+# already in the macOS tree through cpal; features are the minimum used.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+block2 = "0.6"
+dispatch2 = { version = "0.3", default-features = false, features = ["std"] }
+objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFRunLoop", "CFDate"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSDictionary", "NSValue", "NSObject"] }
+objc2-media-player = { version = "0.3", default-features = false, features = ["std", "block2", "MPRemoteCommandCenter", "MPRemoteCommand", "MPRemoteCommandEvent", "MPNowPlayingInfoCenter", "MPMediaItem"] }
+
+# libc is already in the tree (cpal, alsa): getuid() for the D-Bus SASL
+# handshake (MPRIS uses the built-in client in src/mediactl/dbus.rs) and
+# dlopen() of AppKit on macOS.
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+libc = "0.2"
+# Named-pipe server for IPC; same windows-sys tokio already uses (no new crate).
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_Storage_FileSystem", "Win32_System_IO", "Win32_System_Pipes"] }
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+strip = true
+panic = "abort"

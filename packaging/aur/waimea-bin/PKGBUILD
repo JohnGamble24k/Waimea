@@ -1,0 +1,31 @@
+# Maintainer: JohnGamble24k <JohnGamble24k@users.noreply.github.com>
+#
+# The release workflow bumps pkgver and the checksums and pushes this file to
+# the AUR (see packaging/README.md). Releases before v0.3.7 have no aarch64
+# build, hence the SKIP below until then.
+
+pkgname=waimea-bin
+_pkgname=waimea
+pkgver=0.3.7
+pkgrel=1
+pkgdesc='Terminal music player with online search, radio, podcasts and Winamp skins'
+arch=('x86_64' 'aarch64')
+url='https://github.com/JohnGamble24k/Waimea'
+license=('MIT')
+depends=('alsa-lib' 'glibc' 'libgcc')
+optdepends=('yt-dlp: online search and streaming'
+            'ffmpeg: exotic formats and HLS streams')
+provides=("$_pkgname=$pkgver")
+conflicts=("$_pkgname")
+options=('!strip' '!debug')
+source=("LICENSE-$pkgver::https://raw.githubusercontent.com/JohnGamble24k/Waimea/v$pkgver/LICENSE")
+source_x86_64=("$_pkgname-$pkgver-x86_64::$url/releases/download/v$pkgver/waimea-x86_64-linux")
+source_aarch64=("$_pkgname-$pkgver-aarch64::$url/releases/download/v$pkgver/waimea-aarch64-linux")
+sha256sums=('SKIP')
+sha256sums_x86_64=('SKIP')
+sha256sums_aarch64=('SKIP')
+
+package() {
+  install -Dm755 "$_pkgname-$pkgver-$CARCH" "$pkgdir/usr/bin/$_pkgname"
+  install -Dm644 "LICENSE-$pkgver" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

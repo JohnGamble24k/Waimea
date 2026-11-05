@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Waimea
+GenericName=Music Player
+GenericName[nl]=Muziekspeler
+Comment=Terminal music player, platform-agnostic and agent-ready
+Comment[nl]=Muziek en internetradio met klassieke skins
+Exec=waimea
+Icon=waimea
+Terminal=true
+Categories=AudioVideo;Audio;Player;
+Keywords=music;player;winamp;radio;podcast;

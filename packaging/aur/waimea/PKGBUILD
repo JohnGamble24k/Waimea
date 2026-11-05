@@ -1,0 +1,48 @@
+# Maintainer: JohnGamble24k <JohnGamble24k@users.noreply.github.com>
+#
+# The release workflow bumps pkgver and the checksum and pushes this file to
+# the AUR (see packaging/README.md).
+
+pkgname=waimea
+pkgver=0.3.7
+pkgrel=1
+pkgdesc='Terminal music player with online search, radio, podcasts and Winamp skins'
+arch=('x86_64' 'aarch64')
+url='https://github.com/JohnGamble24k/Waimea'
+license=('MIT')
+depends=('alsa-lib' 'glibc' 'libgcc')
+makedepends=('cargo')
+optdepends=('yt-dlp: online search and streaming'
+            'ffmpeg: exotic formats and HLS streams')
+# The release profile already does fat LTO and strips the binary.
+options=('!lto' '!debug')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "Waimea-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "Waimea-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  cargo build --frozen --release
+}
+
+check() {
+  cd "Waimea-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo test --frozen
+}
+
+package() {
+  cd "Waimea-$pkgver"
+  install -Dm755 target/release/waimea "$pkgdir/usr/bin/waimea"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 packaging/linux/waimea.desktop "$pkgdir/usr/share/applications/waimea.desktop"
+  install -Dm644 assets/macos/icon.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/waimea.svg"
+}
