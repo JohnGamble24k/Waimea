@@ -1,5 +1,6 @@
 mod ytdlp;
 
+pub(crate) use ytdlp::parse_search_output;
 pub use ytdlp::{download_audio, YtdlpExtractor};
 
 use anyhow::Result;

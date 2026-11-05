@@ -107,6 +107,7 @@ async function showArtwork({ title, artist }) {
     isStream = item?.source === 'url' && !status.duration;
     if (isStream) { station = item.title; stream = item.id; }
   }
+  showVideo(isStream ? [artist, title].filter(Boolean).join(' - ') : '', station);
   // Stream titles are usually "Artist - Title".
   let name = artist;
   if (!name && isStream && title.includes(' - ')) {
@@ -127,6 +128,40 @@ async function showArtwork({ title, artist }) {
     setText('art-credit', art.credit);
   }
 }
+
+// ---- YouTube: the song a station plays, when a search finds that very song.
+
+const videoCache = new Map();
+let videoKey = '';
+
+async function showVideo(song, station = '') {
+  videoKey = song;
+  const link = $('youtube');
+  link.hidden = true;
+  if (!song.includes(' - ')) return;
+  if (!videoCache.has(song)) videoCache.set(song, await invoke('youtube', { title: song, station }).catch(() => null));
+  const id = videoCache.get(song);
+  if (song !== videoKey || !id) return;
+  link.href = `https://www.youtube.com/watch?v=${id}`;
+  link.dataset.id = id;
+  link.hidden = false;
+}
+
+$('youtube').addEventListener('click', (e) => {
+  e.preventDefault();
+  invoke('open_youtube', { id: e.currentTarget.dataset.id }).catch((err) => { $('error').textContent = String(err); });
+});
+
+// ---- Pin: keep the player above other windows.
+
+function setPinned(on) {
+  appWindow.setAlwaysOnTop(on).catch(console.error);
+  $('pin').setAttribute('aria-pressed', String(on));
+  try { localStorage.setItem('waimea-pin', on ? '1' : ''); } catch { /* lasts this session */ }
+}
+
+$('pin').addEventListener('click', () => setPinned($('pin').getAttribute('aria-pressed') !== 'true'));
+try { if (localStorage.getItem('waimea-pin')) setPinned(true); } catch { /* not pinned */ }
 
 // ---- Status: what plays, polled once a second.
 
@@ -153,7 +188,7 @@ function showStatus() {
   if (title !== shownTitle) {
     shownTitle = title;
     if (title) showArtwork({ title, artist });
-    else { artKey = ''; $('art').hidden = true; }
+    else { artKey = ''; $('art').hidden = true; showVideo(''); }
   }
   setText('title', title || T.choose);
   setText('artist', artist);

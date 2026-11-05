@@ -21,6 +21,7 @@ use crate::event::AppEvent;
 use crate::gfx::encode::base64;
 use crate::gfx::{GfxPainter, Protocol};
 use crate::ipc::{self, IpcServer};
+use crate::media::MediaItem;
 use crate::playback::Playback;
 use crate::providers::get_bytes;
 use crate::providers::radio::{RadioClient, StationQuery};
@@ -556,10 +557,112 @@ fn data_url(bytes: &[u8]) -> Option<String> {
     String::from_utf8(out).ok()
 }
 
+/// The YouTube video id for a radio stream title ("Artist - Title"), found
+/// with yt-dlp and only when a hit plainly is that song. Off with
+/// `youtube_links = false`.
+pub fn youtube_video(stream_title: &str, station: &str) -> Option<String> {
+    if !Config::load().0.youtube_links {
+        return None;
+    }
+    let (artist, title) = stream_title.split_once(" - ")?;
+    if is_station(artist, station) {
+        return None;
+    }
+    // ponytail: no timeout of our own; yt-dlp's socket timeout bounds a dead network.
+    let output = std::process::Command::new("yt-dlp")
+        .args(["--dump-json", "--no-download", "--flat-playlist"])
+        .args(["--socket-timeout", "10", "--"])
+        .arg(format!("ytsearch5:{} {}", artist.trim(), title.trim()))
+        .stdin(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .output()
+        .ok()?;
+    let hits = crate::extractor::parse_search_output(&String::from_utf8_lossy(&output.stdout));
+    best_video(artist, title, &hits).map(|hit| hit.id.clone())
+}
+
+/// Lowercased words: anything but letters and digits splits.
+fn words(text: &str) -> Vec<String> {
+    text.to_lowercase()
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|w| !w.is_empty())
+        .map(String::from)
+        .collect()
+}
+
+/// Ads and jingles go out as "<station> - ...".
+fn is_station(artist: &str, station: &str) -> bool {
+    let station = words(station).concat();
+    !station.is_empty() && words(artist).concat().contains(&station)
+}
+
+/// `text` up to the first of `marks`.
+fn cut<'a>(text: &'a str, marks: &[&str]) -> &'a str {
+    let end = marks.iter().filter_map(|m| text.find(m)).min();
+    &text[..end.unwrap_or(text.len())]
+}
+
+/// The hit that names the (main) artist and every word of the song, is not
+/// another version of it and has a song's length. Auto-generated "- Topic"
+/// channels and "official" uploads win; ties go to YouTube's own ranking.
+/// No hit at all beats a wrong one.
+fn best_video<'a>(artist: &str, title: &str, hits: &'a [MediaItem]) -> Option<&'a MediaItem> {
+    const VERSIONS: &[&str] = &[
+        "cover",
+        "karaoke",
+        "live",
+        "remix",
+        "reaction",
+        "instrumental",
+        "nightcore",
+        "slowed",
+        "sped",
+        "8d",
+        "tutorial",
+        "lesson",
+        "acoustic",
+        "mashup",
+        "parody",
+    ];
+    let artist = artist.to_lowercase();
+    let title = title.to_lowercase();
+    let artist_key = words(cut(
+        &artist,
+        &[" feat", " ft.", " ft ", " & ", ", ", " x ", " vs"],
+    ))
+    .concat();
+    let song = words(cut(&title, &["(", "[", " feat", " ft.", " ft "]));
+    if artist_key.is_empty() || song.is_empty() {
+        return None;
+    }
+    let wanted = words(&format!("{artist} {title}"));
+    hits.iter()
+        .enumerate()
+        .filter(|(_, hit)| {
+            let channel = hit.subtitle.as_deref().unwrap_or("");
+            let text = words(&format!("{} {channel}", hit.title));
+            text.concat().contains(&artist_key)
+                && song.iter().all(|w| text.contains(w))
+                && !text
+                    .iter()
+                    .any(|w| VERSIONS.contains(&w.as_str()) && !wanted.contains(w))
+                && hit.duration.is_none_or(|d| (60..=900).contains(&d))
+        })
+        .max_by_key(|(rank, hit)| {
+            let topic = hit
+                .subtitle
+                .as_deref()
+                .is_some_and(|c| c.ends_with(" - Topic"));
+            let official = words(&hit.title).iter().any(|w| w == "official");
+            (topic, official, std::cmp::Reverse(*rank))
+        })
+        .map(|(_, hit)| hit)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::media::{MediaItem, SourceKind};
+    use crate::media::SourceKind;
     use crate::view::{EqSettings, PlayStatus, RepeatMode, StreamFormat};
     use std::time::Duration;
 
@@ -671,5 +774,65 @@ mod tests {
         assert_eq!(ui.on_mouse(row, &v), Some(Command::Select(1)));
         assert_eq!(ui.on_mouse(row, &v), Some(Command::PlayIndex(1)));
         assert!(mouse_event(&ui, "bogus", 0, 0).is_none());
+    }
+
+    #[test]
+    fn youtube_match_wants_the_song_not_a_version() {
+        let hit = |title: &str, channel: &str, duration: u64| MediaItem {
+            id: title.into(),
+            title: title.into(),
+            artist: None,
+            album: None,
+            duration: Some(duration),
+            subtitle: Some(channel.into()),
+            source: SourceKind::Extractor("ytdlp".into()),
+        };
+        let hits = [
+            hit("Daft Punk - Get Lucky (Live)", "Fan", 300),
+            hit("Get Lucky - Daft Punk cover", "Someone", 240),
+            hit(
+                "Daft Punk - Get Lucky (Official Video)",
+                "DaftPunkVEVO",
+                248,
+            ),
+            hit("Get Lucky", "Daft Punk - Topic", 369),
+            hit("Get Lucky 10 hours", "Daft Punk", 36000),
+        ];
+        let best = |a, t| best_video(a, t, &hits).map(|h| h.id.as_str());
+        // The topic channel wins; feat. and (Radio Edit) do not get in the way.
+        assert_eq!(
+            best("DAFT PUNK feat. Pharrell", "Get Lucky (Radio Edit)"),
+            Some("Get Lucky")
+        );
+        assert_eq!(best("Daft Punk", "Get Lucky"), Some("Get Lucky"));
+        // Asked for live, a live version may win over nothing.
+        assert_eq!(
+            best("Daft Punk", "Get Lucky live"),
+            Some("Daft Punk - Get Lucky (Live)")
+        );
+        // Another artist or song: no link.
+        assert_eq!(best("Pharrell", "Happy"), None);
+        assert_eq!(best("Radio 538", "Jingle"), None);
+        assert_eq!(best("", "Get Lucky"), None);
+        assert_eq!(best_video("Daft Punk", "Get Lucky", &hits[..2]), None);
+        assert!(is_station("RADIO 538", "Radio 538"));
+        assert!(!is_station("Queen", "Radio 538"));
+        assert!(!is_station("Queen", ""));
+    }
+
+    #[test]
+    #[ignore = "network, yt-dlp"]
+    fn live_youtube() {
+        for song in [
+            "Daft Punk - Get Lucky",
+            "ABBA - Dancing Queen",
+            "Golden Earring - Radar Love",
+            "Anouk - Nobody's Wife",
+            "Doe Maar - 1 Nacht Alleen",
+            "Queen - Bohemian Rhapsody (Remastered 2011)",
+            "Radio 538 - Reclame",
+        ] {
+            println!("{song:45} -> {:?}", youtube_video(song, "Radio 538"));
+        }
     }
 }

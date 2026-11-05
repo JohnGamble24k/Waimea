@@ -30,7 +30,7 @@ fn deserialize_duration<'de, D: serde::Deserializer<'de>>(
 
 /// Parse `--dump-json` output (one JSON object per line); unparseable lines
 /// (warnings, partial output) are skipped.
-fn parse_search_output(stdout: &str) -> Vec<MediaItem> {
+pub(crate) fn parse_search_output(stdout: &str) -> Vec<MediaItem> {
     stdout
         .lines()
         .filter(|l| !l.trim().is_empty())

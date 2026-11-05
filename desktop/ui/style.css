@@ -154,6 +154,10 @@ body[data-mode="modern"] .classic, body[data-mode="classic"] .modern { display: 
 
 #artist { margin: 8px 0 0; min-height: 1.4em; color: var(--foam); font-size: clamp(15px, 1.7vw, 22px); }
 
+#youtube { display: inline-block; margin: 6px 0 0; color: var(--foam); font-size: 13px; opacity: .8; }
+
+#youtube:hover { opacity: 1; }
+
 #error { margin: 4px 0 0; min-height: 1.4em; color: var(--hibiscus); font-size: 13px; }
 
 /* The sea stays put and keeps moving while the card turns in front of it.

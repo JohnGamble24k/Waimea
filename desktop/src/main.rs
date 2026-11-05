@@ -4,6 +4,7 @@
 
 use tauri::{ipc::Response, AppHandle, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_opener::OpenerExt;
 use waimea::desktop::{self, Desktop};
 
 #[tauri::command(async)]
@@ -26,6 +27,31 @@ fn eq(player: State<'_, Desktop>) -> String {
 fn artwork(artist: String, station: String, stream: String) -> Option<serde_json::Value> {
     desktop::artwork(&artist, &station, &stream)
         .map(|art| serde_json::json!({"url": art.url, "credit": art.credit, "logo": art.logo}))
+}
+
+/// The YouTube video id of the song a station plays, or null.
+#[tauri::command(async)]
+fn youtube(title: String, station: String) -> Option<String> {
+    desktop::youtube_video(&title, &station)
+}
+
+/// Opens a YouTube video in the browser. Only video ids, so the page can not
+/// make the app open anything else.
+#[tauri::command]
+fn open_youtube(app: AppHandle, id: String) -> Result<(), String> {
+    if id.len() != 11
+        || !id
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+    {
+        return Err("not a YouTube video id".into());
+    }
+    app.opener()
+        .open_url(
+            format!("https://www.youtube.com/watch?v={id}"),
+            None::<&str>,
+        )
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command(async)]
@@ -70,6 +96,13 @@ fn add_music(app: AppHandle, folder: bool, title: String) -> Result<usize, Strin
 }
 
 fn main() {
+    // Wayland lets no window keep itself above the others, so the pin button
+    // would do nothing there. Run through XWayland, where it works; without
+    // XWayland GTK falls back to Wayland itself. WAIMEA_WAYLAND=1 opts out.
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("WAIMEA_WAYLAND").is_none() {
+        std::env::set_var("GDK_BACKEND", "x11,wayland");
+    }
     tauri::Builder::default()
         // A second launch brings the open window forward.
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
@@ -79,8 +112,18 @@ fn main() {
             }
         }))
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            frame, spectrum, eq, artwork, mouse, request, add_music, skins
+            frame,
+            spectrum,
+            eq,
+            artwork,
+            youtube,
+            open_youtube,
+            mouse,
+            request,
+            add_music,
+            skins
         ])
         .setup(|app| {
             let handle = app.handle().clone();

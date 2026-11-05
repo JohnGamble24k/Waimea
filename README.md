@@ -375,6 +375,7 @@ replaygain = "off"
 graphics = "auto"
 media_controls = true
 startup_sound = true
+youtube_links = true
 ```
 
 | Option | Default | Description |
@@ -389,6 +390,7 @@ startup_sound = true
 | `graphics` | `auto` | Skin graphics: `auto`, `kitty`, `iterm2`, `sixel`, or `halfblock` |
 | `media_controls` | `true` | Media keys and the OS now-playing widget (see below) |
 | `startup_sound` | `true` | Play the steel-guitar chords when the TUI starts (not when started with files or URLs, and at your saved volume) |
+| `youtube_links` | `true` | Desktop app: look up the song a radio station plays on YouTube (with yt-dlp, so each song title goes to YouTube) and link it under the title when a hit plainly is that song |
 
 ### Media keys
 

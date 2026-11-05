@@ -35,6 +35,10 @@ pub struct Config {
     /// Play the slide-guitar chords when the TUI starts.
     #[serde(default = "default_true")]
     pub startup_sound: bool,
+    /// Desktop: look up the song a radio station plays on YouTube (through
+    /// yt-dlp) and link it under the title.
+    #[serde(default = "default_true")]
+    pub youtube_links: bool,
     /// Radio, podcasts, lyrics, Subsonic and Jellyfin (`[providers.*]`).
     #[serde(default)]
     pub providers: ProvidersConfig,
@@ -176,6 +180,7 @@ impl Default for Config {
             graphics: default_graphics(),
             media_controls: true,
             startup_sound: true,
+            youtube_links: true,
             providers: ProvidersConfig::default(),
         }
     }

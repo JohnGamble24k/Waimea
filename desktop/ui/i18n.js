@@ -2,6 +2,8 @@
 const STRINGS = {
   en: {
     showLibrary: 'Show library',
+    pin: 'Always on top',
+    youtube: 'Watch on YouTube',
     backToPlayer: 'Back to the player',
     minimize: 'Minimize',
     close: 'Close',
@@ -45,6 +47,8 @@ const STRINGS = {
   },
   nl: {
     showLibrary: 'Bibliotheek tonen',
+    pin: 'Altijd bovenop',
+    youtube: 'Bekijk op YouTube',
     backToPlayer: 'Terug naar de speler',
     minimize: 'Minimaliseren',
     close: 'Sluiten',
@@ -94,6 +98,7 @@ const T = STRINGS[LANGUAGE];
 function translatePage() {
   document.documentElement.lang = LANGUAGE;
   const labels = {
+    pin: 'pin',
     'library-toggle': 'showLibrary',
     minimize: 'minimize',
     close: 'close',
@@ -117,6 +122,7 @@ function translatePage() {
     'add-folder': 'addFolder',
     loading: 'loadingSkin',
     title: 'choose',
+    youtube: 'youtube',
   };
   Object.entries(texts).forEach(([id, key]) => { document.getElementById(id).textContent = T[key]; });
   const tabs = { local: 'tabLocal', radio: 'tabRadio', queue: 'tabQueue', eq: 'tabEq', skins: 'tabSkins' };

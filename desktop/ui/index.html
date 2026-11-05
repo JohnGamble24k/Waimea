@@ -11,6 +11,7 @@
       <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><path d="M0 50C8 48 14 42 19 33C25 21 34 12 45 12C54 12 60 19 59 27C58 34 50 37 45 33C41 30 42 24 47 24C43 21 37 24 34 31C30 41 36 50 64 48V56H0Z"/></svg>
       <span class="word" data-tauri-drag-region>Waimea</span>
       <span class="grow" data-tauri-drag-region></span>
+      <button id="pin" class="plain toggle" type="button" aria-pressed="false" aria-label="Altijd bovenop"><svg viewBox="0 0 24 24"><path d="M9 4h6l-1 5 3 3v2H7v-2l3-3zM12 14v6"/></svg></button>
       <button id="library-toggle" class="plain" type="button" aria-controls="library" aria-expanded="false" aria-label="Bibliotheek tonen"><svg viewBox="0 0 24 24"><path id="toggle-icon" d="M4 6h16M4 12h16M4 18h10"/></svg></button>
       <button id="minimize" class="plain" type="button" aria-label="Minimaliseren"><svg viewBox="0 0 16 16"><path d="M3 8h10"/></svg></button>
       <button id="close" class="plain" type="button" aria-label="Sluiten"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
@@ -28,6 +29,7 @@
       <div class="words">
         <h1 id="title">Kies muziek of een radiostation</h1>
         <p id="artist"></p>
+        <a id="youtube" href="#" hidden>Bekijk op YouTube</a>
         <p id="error" role="status"></p>
       </div>
     </section>
