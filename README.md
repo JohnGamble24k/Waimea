@@ -2,17 +2,69 @@
 
 # Waimea
 
-A lightweight, platform-agnostic, agent-ready terminal music player: a single small binary with no mpv or other runtime dependencies. Native Rust audio engine, visualizer, synced lyrics, Internet radio, podcasts, self-hosted servers and pixel-accurate Winamp skins, all in your terminal.
+A music and Internet radio player with two faces: a modern desktop app and a terminal player. Both run the same small Rust player with its own audio engine, so there is no mpv or VLC to install.
 
-**Waimea** is named after the waves of Hawaii, and the wave stands for the waveform. Its first two letters, **WA**, nod to Winamp, the classic Windows player. Like Winamp, it greets you with a sound on startup: three chords on a Hawaiian steel guitar.
-
-**Agent ready**: everything a person can do, a script or AI agent can do too, over a local socket: `waimea search online lofi --play 1`, `waimea status --json`, `waimea key`, `waimea screen --json`. See [Remote control](#remote-control).
+**Waimea** is named after the waves of Hawaii; the wave stands for the waveform. Its first two letters, **WA**, nod to Winamp. Like Winamp, it wears classic `.wsz` skins and greets you with a sound: three chords on a Hawaiian steel guitar.
 
 **[Releases](https://github.com/JohnGamble24k/Waimea/releases)** | **[Contributing](CONTRIBUTING.md)**
 
+<p align="center"><img src="assets/screenshots/desktop-player.webp" width="760" alt="The Waimea desktop app playing a radio station: the artist's photo, the song title with a Watch on YouTube link, and the spectrum as waves of the sea"></p>
+
 > Waimea is not affiliated with any content platform. Online audio search requires a third-party extractor (yt-dlp). Users are responsible for complying with the terms of service of any content they access.
 
-## Features
+## The desktop app
+
+A player that stays sharp at any window size. Whatever plays moves the sea at the bottom of the window: the spectrum, drawn as waves.
+
+- **Now playing**: the artist's photo from Wikimedia Commons (freely licensed photos only, with their credit) or the radio station's logo.
+- **Watch on YouTube**: when a radio station names the song it plays, Waimea looks it up on YouTube and links it under the title. The link only shows when a hit plainly is that song: no covers, live versions or remixes, and no lookups for the station's own ads and jingles. Needs yt-dlp; switch it off with `youtube_links = false`.
+- **Always on top**: the pin in the title bar keeps the player above your other windows.
+- **The back of the card**: the menu button turns the player over to your music, radio, playlist, equalizer and looks.
+- **English or Dutch**, following your system language.
+
+<table>
+  <tr>
+    <td><img src="assets/screenshots/desktop-music.webp" width="400" alt="Music tab: a searchable list of local tracks with buttons to add files or a folder"></td>
+    <td><img src="assets/screenshots/desktop-radio.webp" width="400" alt="Radio tab: radio station search with genre chips and stations with their tags, quality and country"></td>
+  </tr>
+  <tr>
+    <td><b>Music</b>: your library, searched as you type; add files or whole folders.</td>
+    <td><b>Radio</b>: tens of thousands of stations from <a href="https://www.radio-browser.info">Radio Browser</a>, one tap on a genre away.</td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/desktop-queue.webp" width="400" alt="Playlist tab: the queue with the playing radio station highlighted"></td>
+    <td><img src="assets/screenshots/desktop-eq.webp" width="400" alt="Equalizer tab: a preamp and ten band sliders with an on switch and presets"></td>
+  </tr>
+  <tr>
+    <td><b>Playlist</b>: what plays now and next.</td>
+    <td><b>Equalizer</b>: ten bands, a preamp and the Winamp presets.</td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/desktop-skins.webp" width="400" alt="Appearance tab: the modern player and the installed classic skins"></td>
+    <td><img src="assets/screenshots/desktop-classic.webp" width="400" alt="The desktop app in classic mode: Waimea's own deep-sea Winamp skin with main, equalizer and playlist windows"></td>
+  </tr>
+  <tr>
+    <td><b>Appearance</b>: the modern player or any classic skin.</td>
+    <td><b>Classic mode</b>: Waimea's own deep-sea skin (<a href="assets/skin/make_skin.py">drawn by a script</a>); every button and slider works.</td>
+  </tr>
+</table>
+
+The desktop app drives the same player as the terminal version, so the [remote-control commands](#remote-control) work on it too. Only one Waimea runs at a time. Searching YouTube itself is a terminal feature for now.
+
+The desktop app is not in the release packages yet. To build it on Debian or Ubuntu:
+
+```bash
+sudo apt install libwebkit2gtk-4.1-dev librsvg2-dev
+cargo run --release -p waimea-desktop
+```
+
+On Linux the app runs through XWayland, because Wayland does not let a window keep itself above the others. Set `WAIMEA_WAYLAND=1` to run it on Wayland directly; the pin then does nothing.
+
+## The terminal player
+
+A single small binary, made for the terminal and for scripts.
+
+**Agent ready**: everything a person can do, a script or AI agent can do too, over a local socket: `waimea search online lofi --play 1`, `waimea status --json`, `waimea key`, `waimea screen --json`. See [Remote control](#remote-control).
 
 - **Native audio engine** (cpal + symphonia): gapless playback, 10-band EQ with Winamp presets and preamp, ReplayGain (track/album), balance, volume
 - **Streams**: HTTP streams with ICY (now-playing) titles, radio playlists (`.pls` / `.m3u`); optional ffmpeg for exotic formats and HLS
@@ -32,12 +84,10 @@ A lightweight, platform-agnostic, agent-ready terminal music player: a single sm
 - **Remote control**: everything from the command line over a local socket: playback, queue editing (`list`, `jump`, `move`, `remove`), searching every source (`waimea search online lofi --play 1`), themes, skins and visualizers, lyrics, and driving the TUI itself (`waimea key`, `waimea screen`); a headless `--daemon` mode; `waimea FILE` queues into the running player instead of starting a second one
 - **Media keys and now-playing widgets**: MPRIS2 on Linux (`playerctl`, GNOME/KDE media controls), Now Playing and the media keys on macOS; in the TUI and in `--daemon` mode
 
-## Screenshots
-
 <table>
   <tr>
-    <td><img src="assets/screenshots/skin-zelda.webp" width="400" alt="Waimea with a Zelda skin: main, equalizer and playlist windows"></td>
-    <td><img src="assets/screenshots/skin-breeder.webp" width="400" alt="Waimea with the Breeder skin: main and playlist windows"></td>
+    <td><img src="assets/screenshots/skin-zelda.webp" width="400" alt="Waimea in the terminal with a Zelda skin: main, equalizer and playlist windows"></td>
+    <td><img src="assets/screenshots/skin-breeder.webp" width="400" alt="Waimea in the terminal with the Breeder skin: main and playlist windows"></td>
   </tr>
   <tr>
     <td align="center">Zelda</td>
@@ -49,26 +99,14 @@ Both skins come from the [Winamp Skin Museum](https://skins.webamp.org/) and are
 
 ## How Waimea uses yt-dlp
 
-yt-dlp is great at finding audio, but it is a Python program. Waimea only asks it one question: where is the audio file?
+yt-dlp is great at finding audio, but it is a Python program. Waimea asks it as little as it can:
 
 - **Spawn, ask, exit.** yt-dlp runs once per song (about 1.7 s) to get the stream link, with a timeout. If you skip or stop before it answers, Waimea kills it.
 - **Pick a format Waimea can play.** Waimea asks for AAC (YouTube format 140), which its own decoder handles, so no ffmpeg runs behind the song.
 - **Instant seeking.** The audio streams over plain HTTP, so jumping ahead is a range request instead of restarting a pipeline.
+- **Radio songs on YouTube.** In the desktop app, one search per new song a station plays, for the Watch on YouTube link; the result is remembered for the session.
 
 Sources that only offer HLS or Opus (some SoundCloud tracks) still go through ffmpeg.
-
-## Desktop app (preview)
-
-Waimea also runs as a desktop app, with no terminal in sight: a modern player that stays sharp at any size, with the spectrum as a living wave. One button turns the card over to your music, radio stations, playlist and equalizer. Classic `.wsz` skins are one click away under Uiterlijk. The code lives in [`desktop/`](desktop/) and uses [Tauri](https://tauri.app). It drives the same player as the terminal version, so the remote-control commands below work on it too. Only one Waimea runs at a time.
-
-The classic mode ships with Waimea's own deep-sea skin ([drawn by a script](assets/skin/make_skin.py)). YouTube is parked in the desktop app for now.
-
-To build it on Debian or Ubuntu:
-
-```bash
-sudo apt install libwebkit2gtk-4.1-dev librsvg2-dev
-cargo run --release -p waimea-desktop
-```
 
 ## Installation
 
