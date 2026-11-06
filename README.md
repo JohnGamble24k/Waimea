@@ -51,7 +51,9 @@ A player that stays sharp at any window size. Whatever plays moves the sea at th
 
 The desktop app drives the same player as the terminal version, so the [remote-control commands](#remote-control) work on it too. Only one Waimea runs at a time. Searching YouTube itself is a terminal feature for now.
 
-The desktop app is not in the release packages yet. To build it on Debian or Ubuntu:
+On **Windows**, every [release](https://github.com/JohnGamble24k/Waimea/releases) after 0.3.7 has an installer: `waimea-desktop-<version>-x86_64-windows-setup.exe`. It installs for your account only, needs no administrator rights and fetches Microsoft's WebView2 if Windows lacks it. The installer is not code-signed yet, so SmartScreen asks once (More info → Run anyway). For online search and the YouTube links, install yt-dlp too: `winget install yt-dlp.yt-dlp`.
+
+On Linux and macOS, build the desktop app from source. On Debian or Ubuntu:
 
 ```bash
 sudo apt install libwebkit2gtk-4.1-dev librsvg2-dev
@@ -82,7 +84,7 @@ A single small binary, made for the terminal and for scripts.
 - **Themes**: Dark, Light and Winamp (`t` cycles, `:theme light` picks); full mouse support
 - **Command palette**: `?` / `Ctrl+K` lists every action for the current view with its key and current value, fuzzy-filtered as you type
 - **Remote control**: everything from the command line over a local socket: playback, queue editing (`list`, `jump`, `move`, `remove`), searching every source (`waimea search online lofi --play 1`), themes, skins and visualizers, lyrics, and driving the TUI itself (`waimea key`, `waimea screen`); a headless `--daemon` mode; `waimea FILE` queues into the running player instead of starting a second one
-- **Media keys and now-playing widgets**: MPRIS2 on Linux (`playerctl`, GNOME/KDE media controls), Now Playing and the media keys on macOS; in the TUI and in `--daemon` mode
+- **Media keys and now-playing widgets**: MPRIS2 on Linux (`playerctl`, GNOME/KDE media controls), Now Playing and the media keys on macOS, the media overlay and media keys on Windows; in the TUI, in `--daemon` mode and in the desktop app
 
 <table>
   <tr>
@@ -123,6 +125,7 @@ From the first [release](https://github.com/JohnGamble24k/Waimea/releases) on, t
 | macOS, Linux | install script | `curl -fsSL https://raw.githubusercontent.com/JohnGamble24k/Waimea/main/install.sh \| sh` |
 | Debian, Ubuntu | `.deb` | `sudo apt install ./waimea_*_amd64.deb` (or `_arm64.deb`) |
 | Fedora, RHEL, openSUSE | `.rpm` | `sudo dnf install ./waimea-*.x86_64.rpm` (or `.aarch64.rpm`) |
+| Windows | desktop app installer | `waimea-desktop-<version>-x86_64-windows-setup.exe` from the release |
 | any | [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) | `cargo binstall --git https://github.com/JohnGamble24k/Waimea waimea` |
 
 The `.deb` and `.rpm` also add Waimea to your application menu.
@@ -436,7 +439,7 @@ With `media_controls = true` (the default) Waimea shows up in the system's media
 
 - **Linux**: an MPRIS2 player on the D-Bus session bus (`org.mpris.MediaPlayer2.waimea`). Play, pause, stop, next, previous, seek, volume, shuffle and loop status all work, so do `playerctl` and desktop widgets; local files get cover art from a `cover.jpg`/`folder.jpg` next to them. Waimea speaks D-Bus itself (no libdbus); without a session bus, media controls simply stay off.
 - **macOS**: Now Playing (title, artist, album, duration, position) and the media keys / Control Center (play, pause, next, previous, scrubbing).
-- **Windows**: not supported yet.
+- **Windows**: the System Media Transport Controls: the media overlay next to the volume flyout, the lock screen, media keys and headset buttons (play, pause, stop, next, previous, seeking), with title, artist and album.
 
 `waimea doctor` reports whether media controls are available.
 

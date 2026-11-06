@@ -4,7 +4,8 @@
 //! - Linux: MPRIS2 on the D-Bus session bus (`mpris`, over the small
 //!   built-in client in `dbus`). Off when there is no session bus.
 //! - macOS: Now Playing + remote commands (`macos`); needs `host`.
-//! - Other platforms (Windows): unsupported; `doctor` says so.
+//! - Windows: System Media Transport Controls (`smtc`).
+//! - Other platforms: unsupported; `doctor` says so.
 //!
 //! Commands from the OS reach `Controller::apply` as `AppEvent::Command`;
 //! state is read from `App::player_view()` by an observer that publishes
@@ -22,7 +23,9 @@ mod dbus;
 mod macos;
 #[cfg(target_os = "linux")]
 mod mpris;
-#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[cfg(windows)]
+mod smtc;
+#[cfg(any(target_os = "linux", target_os = "macos", windows))]
 mod track;
 
 /// Start the media integration; `None` when disabled or unsupported.
@@ -50,12 +53,20 @@ fn start_backend(tx: UnboundedSender<AppEvent>) -> Option<Observer> {
     }))
 }
 
-#[cfg(not(any(target_os = "linux", target_os = "macos")))]
+#[cfg(windows)]
+fn start_backend(tx: UnboundedSender<AppEvent>) -> Option<Observer> {
+    let smtc = smtc::Smtc::start(tx)?;
+    Some(observer(move |state, clock, changes| {
+        smtc.publish(state, clock, changes);
+    }))
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
 fn start_backend(_tx: UnboundedSender<AppEvent>) -> Option<Observer> {
     None
 }
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[cfg(any(target_os = "linux", target_os = "macos", windows))]
 fn observer(
     mut publish: impl FnMut(&track::State, &track::Clock, &track::Changes) + 'static,
 ) -> Observer {
@@ -98,7 +109,10 @@ use mpris::doctor as platform_doctor;
 #[cfg(target_os = "macos")]
 use macos::doctor as platform_doctor;
 
-#[cfg(not(any(target_os = "linux", target_os = "macos")))]
+#[cfg(windows)]
+use smtc::doctor as platform_doctor;
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
 fn platform_doctor() -> String {
     "[--] media controls: not supported on this platform".to_string()
 }

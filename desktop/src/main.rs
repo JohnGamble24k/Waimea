@@ -126,6 +126,12 @@ fn main() {
             skins
         ])
         .setup(|app| {
+            // Windows draws a 1px white border around an undecorated window
+            // with a shadow; the page draws its own rounded shape.
+            #[cfg(windows)]
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_shadow(false);
+            }
             let handle = app.handle().clone();
             match Desktop::start(move || handle.exit(0)) {
                 Ok(player) => {

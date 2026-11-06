@@ -311,6 +311,32 @@ jobs:
   # waimea-<version>-<target>.tar.gz (.zip on Windows) holding
   # waimea-<version>-<target>/{waimea, README.md, LICENSE}. Built from the
   # notarized macOS binaries.
+  # The desktop app's Windows installer (NSIS, per-user, fetches WebView2
+  # when Windows lacks it). Not code-signed: SmartScreen asks once.
+  desktop-windows:
+    name: Desktop installer (Windows)
+    needs: meta
+    runs-on: windows-latest
+    env:
+      VERSION: ${{ needs.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build the installer
+        working-directory: desktop
+        run: npx --yes @tauri-apps/cli@2 build --ci --bundles nsis
+      - name: Stage
+        shell: bash
+        run: |
+          set -- target/release/bundle/nsis/*-setup.exe
+          test "$#" -eq 1 && test -s "$1"
+          cp "$1" "waimea-desktop-$VERSION-x86_64-windows-setup.exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: waimea-desktop-windows
+          path: waimea-desktop-*-setup.exe
+          if-no-files-found: error
+
   archive:
     name: Archives
     needs: [meta, build, notarize]
@@ -439,7 +465,7 @@ jobs:
 
   checksums:
     name: SHA256SUMS
-    needs: [meta, build, notarize, archive]
+    needs: [meta, build, notarize, archive, desktop-windows]
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.meta.outputs.version }}
@@ -460,6 +486,7 @@ jobs:
                    waimea-$VERSION-aarch64-apple-darwin.tar.gz waimea-$VERSION-x86_64-apple-darwin.tar.gz \
                    waimea-$VERSION-x86_64-unknown-linux-gnu.tar.gz waimea-$VERSION-aarch64-unknown-linux-gnu.tar.gz \
                    waimea-$VERSION-x86_64-pc-windows-msvc.zip \
+                   waimea-desktop-$VERSION-x86_64-windows-setup.exe \
                    waimea_${VERSION}-1_amd64.deb waimea_${VERSION}-1_arm64.deb \
                    waimea-${VERSION}-1.x86_64.rpm waimea-${VERSION}-1.aarch64.rpm; do
             test -s "artifacts/$f" || { echo "::error::missing release file $f"; missing=1; }

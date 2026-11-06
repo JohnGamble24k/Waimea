@@ -71,6 +71,7 @@ fn parse_resolve_output(stdout: &str, fallback_title: &str) -> Result<StreamInfo
 
 fn command() -> tokio::process::Command {
     let mut cmd = tokio::process::Command::new("yt-dlp");
+    crate::no_console(cmd.as_std_mut());
     cmd.stdin(Stdio::null()).kill_on_drop(true);
     cmd
 }

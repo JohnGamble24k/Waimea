@@ -81,6 +81,7 @@ impl Ffmpeg {
     fn spawn(&mut self, start: Duration, pipe: Option<Box<dyn Read + Send>>) -> anyhow::Result<()> {
         self.kill();
         let mut cmd = Command::new("ffmpeg");
+        crate::no_console(&mut cmd);
         cmd.args(["-hide_banner", "-nostats", "-loglevel", "info"]);
         if pipe.is_none() {
             cmd.arg("-nostdin");

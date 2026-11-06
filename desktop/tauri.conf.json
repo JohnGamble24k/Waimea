@@ -23,8 +23,11 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["deb", "rpm", "appimage"],
-    "icon": ["icons/icon.png"],
-    "category": "Audio"
+    "targets": ["deb", "rpm", "appimage", "nsis"],
+    "icon": ["icons/icon.png", "icons/icon.ico"],
+    "category": "Audio",
+    "windows": {
+      "nsis": { "languages": ["English", "Dutch"] }
+    }
   }
 }

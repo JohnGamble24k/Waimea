@@ -42,3 +42,11 @@ pub fn runtime() -> std::io::Result<tokio::runtime::Runtime> {
         .enable_all()
         .build()
 }
+
+/// No console window for a helper process (yt-dlp, ffmpeg). The desktop app
+/// has no console of its own, so Windows would flash one up for every run.
+pub(crate) fn no_console(cmd: &mut std::process::Command) -> &mut std::process::Command {
+    #[cfg(windows)]
+    std::os::windows::process::CommandExt::creation_flags(cmd, 0x0800_0000); // CREATE_NO_WINDOW
+    cmd
+}

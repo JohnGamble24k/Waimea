@@ -106,6 +106,9 @@ libc = "0.2"
 # Named-pipe server for IPC; same windows-sys tokio already uses (no new crate).
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_Storage_FileSystem", "Win32_System_IO", "Win32_System_Pipes"] }
+# Media keys / the media overlay (src/mediactl/smtc.rs); the version the
+# desktop app already pulls in through Tauri.
+windows = { version = "0.62", features = ["Foundation", "Media", "Media_Playback"] }
 
 [profile.release]
 lto = "fat"

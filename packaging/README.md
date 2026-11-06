@@ -17,7 +17,7 @@ Where waimea is distributed and how each channel is kept up to date.
 
 Pushing a tag `vX.Y.Z` (it must match `version` in `Cargo.toml`) runs `release.yml`:
 
-1. Builds macOS (arm64, x86_64; signed and notarized, plus `.dmg`), Linux (x86_64, arm64) and Windows (x86_64).
+1. Builds macOS (arm64, x86_64; signed and notarized, plus `.dmg`), Linux (x86_64, arm64) and Windows (x86_64), plus the desktop app's Windows installer (NSIS, not code-signed).
 2. Builds `.deb` and `.rpm` for both Linux architectures and installs them in `ubuntu:24.04`, `debian:12` and `fedora:latest`.
 3. Packs `waimea-<version>-<target>.tar.gz` / `.zip` and checks them against the cargo-binstall metadata.
 4. Writes `SHA256SUMS`, runs `install.sh` against the files on Linux and macOS, and builds and tests the snap.

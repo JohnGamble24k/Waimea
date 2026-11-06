@@ -65,7 +65,9 @@ fn version_flag(dep: Dep) -> &'static str {
 }
 
 async fn probe_one(dep: Dep) -> DepStatus {
-    let output = tokio::process::Command::new(dep.binary())
+    let mut cmd = tokio::process::Command::new(dep.binary());
+    crate::no_console(cmd.as_std_mut());
+    let output = cmd
         .arg(version_flag(dep))
         .stdin(Stdio::null())
         .stderr(Stdio::null())

@@ -43,6 +43,27 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --locked
 
+  # The desktop app and its installer on Windows; clippy also sees the
+  # Windows-only code there (media controls, console flags).
+  desktop-windows:
+    name: desktop app (windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --locked --all-targets -p waimea -p waimea-desktop -- -D warnings
+      - name: Build the installer
+        working-directory: desktop
+        run: npx --yes @tauri-apps/cli@2 build --ci --bundles nsis
+      - uses: actions/upload-artifact@v4
+        with:
+          name: waimea-desktop-windows-setup
+          path: target/release/bundle/nsis/*-setup.exe
+          if-no-files-found: error
+
   size:
     name: release size (${{ matrix.os }})
     runs-on: ${{ matrix.os }}

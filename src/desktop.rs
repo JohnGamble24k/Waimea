@@ -569,7 +569,7 @@ pub fn youtube_video(stream_title: &str, station: &str) -> Option<String> {
         return None;
     }
     // ponytail: no timeout of our own; yt-dlp's socket timeout bounds a dead network.
-    let output = std::process::Command::new("yt-dlp")
+    let output = crate::no_console(&mut std::process::Command::new("yt-dlp"))
         .args(["--dump-json", "--no-download", "--flat-playlist"])
         .args(["--socket-timeout", "10", "--"])
         .arg(format!("ytsearch5:{} {}", artist.trim(), title.trim()))
