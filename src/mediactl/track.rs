@@ -32,6 +32,7 @@ pub struct Track {
 }
 
 impl Track {
+    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
     pub fn is_empty(&self) -> bool {
         self.id.is_empty() && self.title.is_empty()
     }
