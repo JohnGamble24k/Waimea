@@ -25,7 +25,7 @@
     "active": true,
     "targets": ["deb", "rpm", "appimage", "nsis"],
     "icon": ["icons/icon.png", "icons/icon.ico"],
-    "category": "Audio",
+    "category": "Music",
     "windows": {
       "nsis": { "languages": ["English", "Dutch"] }
     }
