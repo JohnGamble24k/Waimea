@@ -20,6 +20,9 @@ pub enum AppEvent {
     DesktopFrame(std::sync::mpsc::SyncSender<Vec<u8>>),
     /// The desktop app's wave: spectrum magnitudes as little-endian f32.
     DesktopSpectrum(std::sync::mpsc::SyncSender<Vec<u8>>),
+    /// The desktop app's video: the playing file and its position, when the
+    /// current track is a video.
+    DesktopVideo(std::sync::mpsc::SyncSender<Option<crate::video::Clock>>),
     /// The desktop app's equalizer panel: settings and preset names as JSON.
     DesktopEq(std::sync::mpsc::SyncSender<String>),
     /// Mouse input from the desktop app; answers whether to open files.

@@ -20,6 +20,7 @@ const STRINGS = {
     pause: 'Pause',
     next: 'Next',
     volume: 'Volume',
+    mute: 'Mute',
     preamp: 'Preamp',
     eqOn: 'Equalizer on',
     tabLocal: 'Music',
@@ -65,6 +66,7 @@ const STRINGS = {
     pause: 'Pauzeren',
     next: 'Volgende',
     volume: 'Volume',
+    mute: 'Dempen',
     preamp: 'Voorversterking',
     eqOn: 'Equalizer aan',
     tabLocal: 'Muziek',
@@ -113,6 +115,7 @@ function translatePage() {
     play: 'play',
     next: 'next',
     volume: 'volume',
+    mute: 'mute',
   };
   Object.entries(labels).forEach(([id, key]) => document.getElementById(id).setAttribute('aria-label', T[key]));
   document.querySelector('.controls').setAttribute('aria-label', T.controls);

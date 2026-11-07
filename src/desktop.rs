@@ -207,12 +207,14 @@ fn take_over(endpoint: &Path, tx: &UnboundedSender<AppEvent>) -> io::Result<IpcS
 pub struct Desktop {
     tx: UnboundedSender<AppEvent>,
     last_frame: Mutex<Vec<u8>>,
+    video: Mutex<crate::video::Video>,
 }
 
 impl Desktop {
     /// Start the player on its own thread. Fails when another instance owns
     /// the remote-control socket. `on_exit` runs after the state was saved.
-    pub fn start(on_exit: impl FnOnce() + Send + 'static) -> Result<Self> {
+    /// `inputs` (files from the command line) replace the queue and play.
+    pub fn start(inputs: Vec<String>, on_exit: impl FnOnce() + Send + 'static) -> Result<Self> {
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
         let endpoint = ipc::endpoint();
         let server = take_over(&endpoint, &tx)
@@ -248,7 +250,7 @@ impl Desktop {
                         // the app ships on macOS.
                         ctl.observers
                             .extend(crate::mediactl::start(media_controls, tx));
-                        ctl.start(Vec::new());
+                        ctl.start(inputs);
                         controller::run_headless(&mut ctl, rx, std::future::pending()).await;
                         ctl.shutdown();
                         drop(server);
@@ -260,6 +262,7 @@ impl Desktop {
         Ok(Self {
             tx,
             last_frame: Mutex::new(Vec::new()),
+            video: Mutex::default(),
         })
     }
 
@@ -282,6 +285,20 @@ impl Desktop {
         }
         last.clone_from(&image);
         image
+    }
+
+    /// The picture of the playing video (see [`crate::video::Video::frame`]):
+    /// empty when the track is no video.
+    pub fn video(&self) -> Vec<u8> {
+        let (reply, answer) = sync_channel(1);
+        if self.tx.send(AppEvent::DesktopVideo(reply)).is_err() {
+            return Vec::new();
+        }
+        let clock = answer.recv_timeout(Duration::from_secs(1)).ok().flatten();
+        match self.video.lock() {
+            Ok(mut video) => video.frame(clock),
+            Err(_) => Vec::new(),
+        }
     }
 
     /// Spectrum magnitudes as little-endian f32 (see `AppEvent`).

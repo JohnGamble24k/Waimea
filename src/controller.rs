@@ -1292,6 +1292,7 @@ impl Controller {
                 }
             },
             Command::Enqueue(inputs) => self.resolve_into_queue(inputs, true),
+            Command::Open(inputs) => self.resolve_into_queue(inputs, false),
             Command::SetVis(mode) => {
                 self.app.vis_mode = mode;
                 self.app.info(format!("Visualizer: {mode}"));
@@ -2104,6 +2105,19 @@ impl Controller {
                     .collect();
                 let _ = reply.send(bytes);
                 return changed;
+            }
+            AppEvent::DesktopVideo(reply) => {
+                let clock = self.app.queue.current().and_then(|item| {
+                    let path = PathBuf::from(&item.id);
+                    (item.source == SourceKind::Local && crate::library::is_video(&path)).then(
+                        || crate::video::Clock {
+                            path,
+                            position: self.playback.position(),
+                        },
+                    )
+                });
+                let _ = reply.send(clock);
+                return false;
             }
             AppEvent::DesktopEq(reply) => {
                 let names: Vec<&str> = eq_presets::PRESETS.iter().map(|(n, _)| *n).collect();

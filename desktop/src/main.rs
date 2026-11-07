@@ -17,6 +17,12 @@ fn spectrum(player: State<'_, Desktop>) -> Response {
     Response::new(player.spectrum())
 }
 
+/// The video picture: empty for no video, one byte when unchanged, else JPEG.
+#[tauri::command(async)]
+fn video(player: State<'_, Desktop>) -> Response {
+    Response::new(player.video())
+}
+
 #[tauri::command(async)]
 fn eq(player: State<'_, Desktop>) -> String {
     player.eq()
@@ -95,6 +101,22 @@ fn add_music(app: AppHandle, folder: bool, title: String) -> Result<usize, Strin
     Ok(paths.len())
 }
 
+/// Files and URLs given on the command line (an "Open with" from the file
+/// manager), made absolute against `cwd`.
+fn inputs(args: impl IntoIterator<Item = String>, cwd: &std::path::Path) -> Vec<String> {
+    args.into_iter()
+        .skip(1)
+        .filter(|a| !a.starts_with('-'))
+        .map(|a| {
+            if a.contains("://") {
+                a
+            } else {
+                cwd.join(a).display().to_string()
+            }
+        })
+        .collect()
+}
+
 fn main() {
     // Wayland lets no window keep itself above the others, so the pin button
     // would do nothing there. Run through XWayland, where it works; without
@@ -104,8 +126,13 @@ fn main() {
         std::env::set_var("GDK_BACKEND", "x11,wayland");
     }
     tauri::Builder::default()
-        // A second launch brings the open window forward.
-        .plugin(tauri_plugin_single_instance::init(|app, _, _| {
+        // A second launch brings the open window forward and plays its files.
+        .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+            let files = inputs(args, std::path::Path::new(&cwd));
+            if !files.is_empty() {
+                let line = serde_json::json!({"cmd": "open", "arg": files}).to_string();
+                let _ = desktop::request(&line);
+            }
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.unminimize();
                 let _ = window.set_focus();
@@ -115,6 +142,7 @@ fn main() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             frame,
+            video,
             spectrum,
             eq,
             artwork,
@@ -133,7 +161,9 @@ fn main() {
                 let _ = window.set_shadow(false);
             }
             let handle = app.handle().clone();
-            match Desktop::start(move || handle.exit(0)) {
+            let cwd = std::env::current_dir().unwrap_or_default();
+            let files = inputs(std::env::args(), &cwd);
+            match Desktop::start(files, move || handle.exit(0)) {
                 Ok(player) => {
                     app.manage(player);
                 }

@@ -204,6 +204,7 @@ function showStatus() {
   if (!settingVolume && status.volume !== undefined && Number($('volume').value) !== status.volume) {
     $('volume').value = status.volume;
     setFill($('volume'));
+    showMuted();
   }
   const live = status.status !== 'stopped' && !status.duration;
   if ($('position').disabled !== !status.duration) $('position').disabled = !status.duration;
@@ -269,9 +270,28 @@ $('position').addEventListener('change', async (e) => {
 $('volume').addEventListener('input', (e) => {
   settingVolume = true;
   setFill(e.target);
+  showMuted();
   command('set_volume', e.target.value / 100);
 });
 $('volume').addEventListener('change', () => { settingVolume = false; });
+
+// Muting is volume 0; the speaker click remembers the level to go back to.
+let unmuted = 100;
+function showMuted() {
+  const muted = Number($('volume').value) === 0;
+  $('speaker-wave').style.display = muted ? 'none' : '';
+  $('speaker-cross').style.display = muted ? '' : 'none';
+  $('mute').setAttribute('aria-pressed', String(muted));
+}
+$('mute').addEventListener('click', () => {
+  const volume = $('volume');
+  const level = Number(volume.value);
+  if (level) unmuted = level;
+  volume.value = level ? 0 : unmuted;
+  setFill(volume);
+  showMuted();
+  command('set_volume', volume.value / 100);
+});
 
 addEventListener('keydown', (e) => {
   if (e.code === 'Space' && !['INPUT', 'BUTTON', 'SELECT'].includes(e.target.tagName)) {
@@ -732,8 +752,49 @@ query.addEventListener('input', () => {
   typing = setTimeout(() => search(query.value.trim()), 150);
 });
 
+// ---- Video: the picture of a video file, timed by its sound.
+
+const video = $('video');
+const videoPaint = video.getContext('2d');
+
+async function videoLoop() {
+  let delay = 500;
+  if (!document.hidden && !isFlipped() && document.body.dataset.mode === 'modern') {
+    try {
+      const bytes = await invoke('video');
+      const has = bytes.byteLength > 0;
+      if (video.hidden === has) video.hidden = !has;
+      if (!has && document.body.classList.contains('fullscreen')) setFullscreen(false);
+      if (bytes.byteLength > 1) {
+        const image = await createImageBitmap(new Blob([bytes], { type: 'image/jpeg' }));
+        if (video.width !== image.width || video.height !== image.height) {
+          video.width = image.width;
+          video.height = image.height;
+        }
+        videoPaint.drawImage(image, 0, 0);
+        image.close();
+      }
+      if (has) delay = status.status === 'playing' ? 15 : 200;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  setTimeout(videoLoop, delay);
+}
+
+function setFullscreen(on) {
+  document.body.classList.toggle('fullscreen', on);
+  appWindow.setFullscreen(on).catch(console.error);
+}
+video.addEventListener('dblclick', () => setFullscreen(!document.body.classList.contains('fullscreen')));
+video.addEventListener('click', () => $('play').click());
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.body.classList.contains('fullscreen')) setFullscreen(false);
+});
+
 $('library').inert = true;
 setMode(readMode());
 show('local');
 pollStatus();
 waveLoop();
+videoLoop();

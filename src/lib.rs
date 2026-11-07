@@ -33,6 +33,7 @@ pub mod tap;
 pub mod term_input;
 pub mod theme;
 pub mod ui;
+pub mod video;
 pub mod view;
 pub mod vis;
 pub mod winamp;

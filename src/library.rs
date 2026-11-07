@@ -159,10 +159,25 @@ pub fn item_for_file(path: &Path) -> MediaItem {
     item_from_tags(path, read_tags(path))
 }
 
-pub fn has_audio_extension(path: &Path, extensions: &[String]) -> bool {
+/// Video files: their sound plays like any track, the desktop app shows the
+/// picture. Always playable, whatever `extensions` the config lists.
+pub const VIDEO_EXTENSIONS: &[&str] = &[
+    "mp4", "m4v", "mkv", "webm", "mov", "avi", "wmv", "flv", "mpg", "mpeg", "ts", "m2ts", "3gp",
+    "ogv",
+];
+
+pub fn is_video(path: &Path) -> bool {
     path.extension()
         .and_then(|e| e.to_str())
-        .is_some_and(|ext| extensions.iter().any(|e| e.eq_ignore_ascii_case(ext)))
+        .is_some_and(|ext| VIDEO_EXTENSIONS.iter().any(|v| v.eq_ignore_ascii_case(ext)))
+}
+
+pub fn has_audio_extension(path: &Path, extensions: &[String]) -> bool {
+    is_video(path)
+        || path
+            .extension()
+            .and_then(|e| e.to_str())
+            .is_some_and(|ext| extensions.iter().any(|e| e.eq_ignore_ascii_case(ext)))
 }
 
 /// Recursively collect audio files under `root` (hidden entries skipped,
@@ -368,6 +383,7 @@ mod tests {
         let dir = TempDir::new("collect");
         std::fs::create_dir_all(dir.0.join("b/.hidden")).unwrap();
         std::fs::write(dir.0.join("b/2.MP3"), b"x").unwrap();
+        std::fs::write(dir.0.join("b/clip.MKV"), b"x").unwrap();
         std::fs::write(dir.0.join("a.wav"), b"x").unwrap();
         std::fs::write(dir.0.join("notes.txt"), b"x").unwrap();
         std::fs::write(dir.0.join(".secret.mp3"), b"x").unwrap();
@@ -382,7 +398,7 @@ mod tests {
                     .replace('\\', "/")
             })
             .collect();
-        assert_eq!(names, vec!["a.wav", "b/2.MP3"]);
+        assert_eq!(names, vec!["a.wav", "b/2.MP3", "b/clip.MKV"]);
         assert!(collect_files(&dir.0.join("missing"), &exts()).is_err());
     }
 

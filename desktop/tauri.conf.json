@@ -25,7 +25,33 @@
     "active": true,
     "targets": ["deb", "rpm", "appimage", "nsis"],
     "icon": ["icons/icon.png", "icons/icon.ico"],
-    "category": "Music",
+    "category": "Video",
+    "fileAssociations": [
+      { "ext": ["mp3"], "mimeType": "audio/mpeg", "description": "Audio (MP3)", "role": "Viewer" },
+      { "ext": ["flac"], "mimeType": "audio/flac", "description": "Audio (FLAC)", "role": "Viewer" },
+      { "ext": ["ogg"], "mimeType": "audio/ogg", "description": "Audio (OGG)", "role": "Viewer" },
+      { "ext": ["opus"], "mimeType": "audio/x-opus+ogg", "description": "Audio (OPUS)", "role": "Viewer" },
+      { "ext": ["wav"], "mimeType": "audio/x-wav", "description": "Audio (WAV)", "role": "Viewer" },
+      { "ext": ["m4a"], "mimeType": "audio/mp4", "description": "Audio (M4A)", "role": "Viewer" },
+      { "ext": ["aac"], "mimeType": "audio/aac", "description": "Audio (AAC)", "role": "Viewer" },
+      { "ext": ["wma"], "mimeType": "audio/x-ms-wma", "description": "Audio (WMA)", "role": "Viewer" },
+      { "ext": ["mp4"], "mimeType": "video/mp4", "description": "Video (MP4)", "role": "Viewer" },
+      { "ext": ["m4v"], "mimeType": "video/x-m4v", "description": "Video (M4V)", "role": "Viewer" },
+      { "ext": ["mkv"], "mimeType": "video/x-matroska", "description": "Video (MKV)", "role": "Viewer" },
+      { "ext": ["webm"], "mimeType": "video/webm", "description": "Video (WEBM)", "role": "Viewer" },
+      { "ext": ["mov"], "mimeType": "video/quicktime", "description": "Video (MOV)", "role": "Viewer" },
+      { "ext": ["avi"], "mimeType": "video/x-msvideo", "description": "Video (AVI)", "role": "Viewer" },
+      { "ext": ["wmv"], "mimeType": "video/x-ms-wmv", "description": "Video (WMV)", "role": "Viewer" },
+      { "ext": ["flv"], "mimeType": "video/x-flv", "description": "Video (FLV)", "role": "Viewer" },
+      { "ext": ["mpg", "mpeg"], "mimeType": "video/mpeg", "description": "Video (MPG)", "role": "Viewer" },
+      { "ext": ["ts", "m2ts"], "mimeType": "video/mp2t", "description": "Video (TS)", "role": "Viewer" },
+      { "ext": ["3gp"], "mimeType": "video/3gpp", "description": "Video (3GP)", "role": "Viewer" },
+      { "ext": ["ogv"], "mimeType": "video/ogg", "description": "Video (OGV)", "role": "Viewer" }
+    ],
+    "linux": {
+      "deb": { "desktopTemplate": "waimea.desktop" },
+      "rpm": { "desktopTemplate": "waimea.desktop" }
+    },
     "windows": {
       "nsis": { "languages": ["English", "Dutch"] }
     }

@@ -2,7 +2,7 @@
 
 # Waimea
 
-A music and Internet radio player with two faces: a modern desktop app and a terminal player. Both run the same small Rust player with its own audio engine, so there is no mpv or VLC to install.
+A music, video and Internet radio player with two faces: a modern desktop app and a terminal player. Both run the same small Rust player with its own audio engine, so there is no mpv or VLC to install.
 
 **Waimea** is named after the waves of Hawaii; the wave stands for the waveform. Its first two letters, **WA**, nod to Winamp. Like Winamp, it wears classic `.wsz` skins and greets you with a sound: three chords on a Hawaiian steel guitar.
 
@@ -18,6 +18,7 @@ A player that stays sharp at any window size. Whatever plays moves the sea at th
 
 - **Now playing**: the artist's photo from Wikimedia Commons (freely licensed photos only, with their credit) or the radio station's logo.
 - **Watch on YouTube**: when a radio station names the song it plays, Waimea looks it up on YouTube and links it under the title. The link only shows when a hit plainly is that song: no covers, live versions or remixes, and no lookups for the station's own ads and jingles. Needs yt-dlp; switch it off with `youtube_links = false`.
+- **Video**: MP4, MKV, WebM, MOV, AVI and more play in the player itself; double-click the picture for full screen, Esc to leave it. The sound goes through Waimea's own engine, so the equalizer and media keys work on videos too. Needs ffmpeg for the picture.
 - **Always on top**: the pin in the title bar keeps the player above your other windows.
 - **The back of the card**: the menu button turns the player over to your music, radio, playlist, equalizer and looks.
 - **English or Dutch**, following your system language.
@@ -51,7 +52,7 @@ A player that stays sharp at any window size. Whatever plays moves the sea at th
 
 The desktop app drives the same player as the terminal version, so the [remote-control commands](#remote-control) work on it too. Only one Waimea runs at a time. Searching YouTube itself is a terminal feature for now.
 
-On **Windows**, every [release](https://github.com/JohnGamble24k/Waimea/releases) after 0.3.7 has an installer: `waimea-desktop-<version>-x86_64-windows-setup.exe`. It installs for your account only, needs no administrator rights and fetches Microsoft's WebView2 if Windows lacks it. The installer is not code-signed yet, so SmartScreen asks once (More info → Run anyway). For online search and the YouTube links, install yt-dlp too: `winget install yt-dlp.yt-dlp`.
+On **Windows**, every [release](https://github.com/JohnGamble24k/Waimea/releases) after 0.3.7 has an installer: `waimea-desktop-<version>-x86_64-windows-setup.exe`. It installs for your account only, needs no administrator rights and fetches Microsoft's WebView2 if Windows lacks it. It registers Waimea for music and video files, so they open in Waimea unless you picked another app for them before; Windows lets you change that under Default apps. The installer is not code-signed yet, so SmartScreen asks once (More info → Run anyway). For video, online search and the YouTube links, install ffmpeg and yt-dlp too: `winget install Gyan.FFmpeg yt-dlp.yt-dlp`.
 
 On Linux and macOS, build the desktop app from source. On Debian or Ubuntu:
 

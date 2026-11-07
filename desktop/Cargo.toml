@@ -2,7 +2,7 @@
 name = "waimea-desktop"
 version = "0.3.7"
 edition = "2021"
-description = "Waimea as a desktop app: Winamp skins in a real window, with a music, radio and YouTube library"
+description = "Waimea as a desktop app: a music and video player with radio, YouTube and Winamp skins"
 license = "MIT"
 publish = false
 

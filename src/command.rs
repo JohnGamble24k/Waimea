@@ -63,6 +63,9 @@ pub enum Command {
     /// Resolve files, directories, playlists or URLs and append them to the
     /// queue (playing them when the queue was empty).
     Enqueue(Vec<String>),
+    /// Resolve inputs like `Enqueue`, but replace the queue and play them
+    /// (a file opened from the file manager).
+    Open(Vec<String>),
     /// Visualizer mode by name (`{"cmd":"set_vis","arg":"scope"}`).
     SetVis(VisMode),
     /// Remove queue entry by index.
