@@ -162,8 +162,9 @@ pub fn item_for_file(path: &Path) -> MediaItem {
 /// Video files: their sound plays like any track, the desktop app shows the
 /// picture. Always playable, whatever `extensions` the config lists.
 pub const VIDEO_EXTENSIONS: &[&str] = &[
-    "mp4", "m4v", "mkv", "webm", "mov", "avi", "wmv", "flv", "mpg", "mpeg", "ts", "m2ts", "3gp",
-    "ogv",
+    "mp4", "m4v", "mkv", "mk3d", "webm", "mov", "qt", "avi", "divx", "wmv", "asf", "flv", "f4v",
+    "mpg", "mpeg", "mpe", "m1v", "m2v", "vob", "ts", "mts", "m2ts", "3gp", "3g2", "ogv", "ogm",
+    "rm", "rmvb", "dv", "mxf",
 ];
 
 pub fn is_video(path: &Path) -> bool {
